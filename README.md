@@ -31,7 +31,7 @@ Examples
 1) https://preetikashetty.space/articles_api.php/8
 2) https://preetikashetty.space/articles_api.php?id=6&section=sports
 
-Descriptions
+Description
 1) This API is used to return Articles.
 2) You can either pass the article ID as URI or set parameters like id, location, section,
 keyword, author and publisher.
@@ -49,7 +49,7 @@ Note: In you can send multiple articles in one go this way
  "input" : [{}, {},..]
 }
 
-Descriptions
+Description
 1) This API is used to add articles
 2) In every article – url, headline, inLanguage, authorName, publisherName, keywords,
 articleSection, articleBody, logoUrl, contentLocation are mandatory parameters. If
@@ -58,7 +58,7 @@ returned.
 
 Method: PUT
 
-Descriptions
+Description
 1) This API is used to update articles
 2) In any article – if url, headline, inLanguage, authorName, publisherName, keywords,
 articleSection, articleBody, logoUrl, contentLocation parameters are set, then they
@@ -68,6 +68,6 @@ the restrictions are not followed.
 
 Method: DELETE
 
-Descriptions
+Description
 1) This API is used to delete articles. However, here we are performing Soft Delete.
 2) If there is no valid article present with the ID given in URL, then 404 will be returned.
