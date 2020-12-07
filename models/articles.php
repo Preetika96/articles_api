@@ -171,11 +171,12 @@ class Articles
 
             try
             {
-                $statement = "SELECT * FROM articles WHERE id = :id";
+                $statement = "SELECT * FROM articles WHERE id = :id and valid = :valid";
                 $statement = $this->connection->prepare($statement);
 
                 $parameter_list = array(
-                    ":id" => $article_id
+                    ":id" => $article_id,
+                    ":valid" => '1'
                 );
 
                 $statement->execute($parameter_list);
@@ -225,6 +226,8 @@ class Articles
 
         if(isset($data->input) && gettype($data->input) === 'array')
         {
+            $insert_id_list = [];
+
             foreach($data->input as $record)
             {
                 $record = (array) $record;
@@ -242,6 +245,8 @@ class Articles
                         $statement->execute($formatted_input['articles']);
 
                         $insert_id = $this->connection->lastInsertId();
+
+                        $insert_id_list[] = $insert_id;
 
                         // Authors
 
@@ -297,17 +302,22 @@ class Articles
 
                         // Get Added Output
 
-                        $statement = "SELECT a.*, au.name as author_name, au.url as author_url, l.location, p.name as publisher_name, p.url as publisher_url, lg.url as logo, lg.width, lg.height, GROUP_CONCAT(k.keyword) as keywords FROM articles a LEFT JOIN authors au ON a.id = au.article_id LEFT JOIN locations l ON a.id = l.article_id LEFT JOIN publishers p ON a.id = p.article_id LEFT JOIN logos lg ON p.id = lg.publisher_id LEFT JOIN keywords k ON a.id = k.article_id WHERE a.valid = '1' AND a.id = :id GROUP BY a.id";
+                        $statement = "SELECT a.*, au.name as author_name, au.url as author_url, l.location, p.name as publisher_name, p.url as publisher_url, lg.url as logo, lg.width, lg.height, GROUP_CONCAT(k.keyword) as keywords FROM articles a LEFT JOIN authors au ON a.id = au.article_id LEFT JOIN locations l ON a.id = l.article_id LEFT JOIN publishers p ON a.id = p.article_id LEFT JOIN logos lg ON p.id = lg.publisher_id LEFT JOIN keywords k ON a.id = k.article_id WHERE a.valid = '1' AND a.id IN (".implode(",", $insert_id_list).") GROUP BY a.id";
            
                         $statement = $this->connection->prepare($statement);
 
-                        $statement->execute(array(":id" => $insert_id));
+                        $statement->execute();
                         $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
 
-                        $result = $this->formatArticleOutput($result[0]);
+                        $output = [];
 
+                        foreach($result as $record)
+                        {
+                            $output[] = $this->formatArticleOutput($record);
+                        }
+                        
                         $code = 'HTTP/1.1 200 OK';
-                        $body = array("message" => "Article has been added successfully.", "data" => $result);
+                        $body = array("message" => "Article has been added successfully.", "data" => $output);
                         $body = json_encode($body);
                     }
                     catch (\PDOException $e) 
@@ -345,11 +355,12 @@ class Articles
         {
             $article_id = $this->uri[2];
 
-            $statement = "SELECT * FROM articles WHERE id = :id";
+            $statement = "SELECT * FROM articles WHERE id = :id AND valid = :valid";
             $statement = $this->connection->prepare($statement);
 
             $parameter_list = array(
-                ":id" => $article_id
+                ":id" => $article_id,
+                ":valid" => '1'
             );
 
             $statement->execute($parameter_list);
@@ -728,6 +739,7 @@ class Articles
     {
         $output = [];
 
+        $output['id'] = $record['id'];
         $output['image'] = $record['image'];
         $output['url'] = $record['url'];
         $output['headline'] = $record['headline'];
